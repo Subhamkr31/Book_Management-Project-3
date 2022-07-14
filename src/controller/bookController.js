@@ -12,6 +12,7 @@ const isbnregEx = /\x20*(?=.{17}$)97(?:8|9)([ -])\d{1,5}\1\d{1,7}\1\d{1,6}\1\d$/
 const Dateregex = /^([0-9]{4}[-/]?((0[13-9]|1[012])[-/]?(0[1-9]|[12][0-9]|30)|(0[13578]|1[02])[-/]?31|02[-/]?(0[1-9]|1[0-9]|2[0-8]))|([0-9]{2}(([2468][048]|[02468][48])|[13579][26])|([13579][26]|[02468][048]|0[0-9]|1[0-6])00)[-/]?02[-/]?29)$/
 
 
+// Validations
 const isValid = function (value) {
     if (typeof value === "undefined" || value === null) return false
     if (typeof value === "string" && value.trim().length === 0) return false
@@ -35,8 +36,8 @@ const createBooks = async function (req, res) {
         if (!mongoose.isValidObjectId(userId)) {
             return res.status(400).send({ status: false, message: 'Please enter valid userId ' })
         }
-        //  authorization
 
+        //  authorization
         if (req.userDetail._id !== userId) return res.status(403).send({ status: false, message: " User unauthorised " })
 
         // title is present or not?
@@ -109,7 +110,9 @@ const getBook = async function (req, res) {
                 return res.status(400).send({ status: false, msg: 'Please enter valid userId' })
         }
 
-        const findBook = await bookModel.find({ $and: [data, { isDeleted: false }] }).select({ title: 1, excerpt: 1, userId: 1, category: 1, releasedAt: 1, reviews: 1 }).sort({ title: 1 })
+        const findBook = await bookModel.find({ $and: [req.query, { isDeleted: false }] }).select({ title: 1, excerpt: 1, userId: 1, category: 1, releasedAt: 1, reviews: 1 })
+
+        findBook.sort((a,b)=>a.title.localeCompare(b.title))
 
         if (!findBook.length) return res.status(404).send({ status: false, message: 'Book is Not found' })
 
