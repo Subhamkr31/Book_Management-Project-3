@@ -20,7 +20,7 @@ const isValid = function (value) {
 const registerUser = async function (req, res) {
     try {
         let userDetails = req.body
-       
+
         if (Object.keys(userDetails).length == 0) {
             return res.status(400).send({ status: false, message: 'Please enter details for user registration.' })
         }
@@ -76,25 +76,27 @@ const registerUser = async function (req, res) {
             return res.status(400).send({ msg: "Please enter a password which contains min 8 and maximum 15 letters,upper and lower case letters and a number" })
         }
 
-        if(Array.isArray(userDetails.address) )  return res.status(400).send({ status: false, msg: " address is in Object format." })
+        if (Array.isArray(userDetails.address)) return res.status(400).send({ status: false, msg: " address is in Object format." })
 
-        if (!isValid(userDetails.address.city )) {
-            return res.status(400).send({ status: false, msg: "Please enter city." })
-        }
-        if (!isValid( userDetails.address.pincode)) {
-            return res.status(400).send({ status: false, msg: "Please enter pincode " })
-        }
-        if (!isValid(userDetails.address.street)) {
-            return res.status(400).send({ status: false, msg: " Enter proper street name." })
-        }
-        if (userDetails.address.city) {
-            if (!nameRegex.test(userDetails.address.city)) {
-                return res.status(400).send({ status: false, msg: "Please enter city in alphabet" })
+        if (userDetails.address) {
+            if (!isValid(userDetails.address.city)) {
+                return res.status(400).send({ status: false, msg: "Please enter city." })
             }
-        }
-        if (userDetails.address.pincode) {
-            if (!regexPin.test(userDetails.address.pincode)) {
-                return res.status(400).send({ status: false, msg: "Please enter pincode in number or only 6 digit" })
+            if (!isValid(userDetails.address.pincode)) {
+                return res.status(400).send({ status: false, msg: "Please enter pincode " })
+            }
+            if (!isValid(userDetails.address.street)) {
+                return res.status(400).send({ status: false, msg: " Enter proper street name." })
+            }
+            if (userDetails.address.city) {
+                if (!nameRegex.test(userDetails.address.city)) {
+                    return res.status(400).send({ status: false, msg: "Please enter city in alphabet" })
+                }
+            }
+            if (userDetails.address.pincode) {
+                if (!regexPin.test(userDetails.address.pincode)) {
+                    return res.status(400).send({ status: false, msg: "Please enter pincode in number or only 6 digit" })
+                }
             }
         }
         let registerNow = await usersModel.create(userDetails)
@@ -122,8 +124,8 @@ const login = async (req, res) => {
         if (isUser.password !== password) return res.status(401).send({ status: false, message: "Invalid Login Credentials" });
 
         const token = jwt.sign({ _id: isUser._id }, "sourabhsubhamgauravhurshalltemsnameproject3", { expiresIn: "1d" });
-        
-        res.setHeader("x-api-key", token)    
+
+        res.setHeader("x-api-key", token)
         return res.status(200).send({ status: true, message: "Login Successful", data: { token } });
 
     } catch (error) { return res.status(500).send({ status: false, message: error.message }) }

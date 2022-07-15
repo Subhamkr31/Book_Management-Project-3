@@ -21,7 +21,7 @@ const authentication = async (req, res, next) => {
 
         if (error.message == "invalid signature") return res.status(400).send({ status: false, message: "user has invalid token" })
 
-        if (error.message == "jwt expired") return res.status(400).send({ status: false, message: "please login one more." })
+        if (error.message == "jwt expired") return res.status(400).send({ status: false, message: "please login once more." })
 
         return res.status(500).send({ status: false, message: error.message })
     }

@@ -70,9 +70,14 @@ const updateReview = async (req, res) => {
 
         if (!regEx.test(req.body.review)) return res.status(400).send({ status: false, message: "review text is invalid it must be alphabet " });
 
-        if(req.body.rating ){
-        if (typeof req.body.rating !== "number" || (req.body.rating <= 0) || (req.body.rating > 5)) return res.status(400).send({ status: false, message: " you can rate only 1 to 5 " });
+        if (req.body.rating) {
+
+            if (!(req.body.rating >= 1 && req.body.rating <= 5)) return res.status(400).send({ status: false, message: 'Rating is between 1 to 5' })
+
         }
+
+        if (req.body.rating === 0) return res.status(400).send({ status: false, message: 'Rating is between 1 to 5' })
+
 
         if (!(mongoose.isValidObjectId(bookId))) return res.status(400).send({ status: false, message: "Please Enter Valid BoodId." })
 
@@ -117,7 +122,7 @@ const DeleteBookReview = async function (req, res) {
 
         if (book && review) {
             await bookModel.findOneAndUpdate({ _id: bookId }, { $inc: { reviews: -1 } }, { new: true })
-             await reviewsModel.findOneAndUpdate({ _id: reviewId }, { isDeleted: true, deletedAt: new Date() }, { new: true })
+            await reviewsModel.findOneAndUpdate({ _id: reviewId }, { isDeleted: true, deletedAt: new Date() }, { new: true })
             // console.log(ab)
             return res.status(200).send({ status: true, message: `review successfuly Deleted ` });
         }

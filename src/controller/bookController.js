@@ -112,7 +112,7 @@ const getBook = async function (req, res) {
 
         const findBook = await bookModel.find({ $and: [req.query, { isDeleted: false }] }).select({ title: 1, excerpt: 1, userId: 1, category: 1, releasedAt: 1, reviews: 1 })
 
-        findBook.sort((a,b)=>a.title.localeCompare(b.title))
+        findBook.sort((a, b) => a.title.localeCompare(b.title))
 
         if (!findBook.length) return res.status(404).send({ status: false, message: 'Book is Not found' })
 
@@ -167,6 +167,10 @@ const updateBook = async function (req, res) {
                 return res.status(400).send({ status: false, msg: "Please enter valid title" })
             }
         }
+        if (title.trim().length == 0) {
+            return res.status(400).send({ status: false, msg: "Please enter valid title" })
+        }
+
 
         if (excerpt) {
             if (!isValid(excerpt)) {
