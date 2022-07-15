@@ -3,7 +3,7 @@ const reviewsModel = require('../model/reviewsModel')
 const mongoose = require('mongoose')
 const userModel = require("../model/usersModel")
 const ObjectId = require('mongoose').Types.ObjectId;
-
+const aws= require("aws-sdk")
 
 // regular expression 
 const titleregEx = /^\w[A-Za-z0-9\s\-_,\.;:()]+$/
@@ -20,13 +20,57 @@ const isValid = function (value) {
     return true
 }
 
+////-------------------------------------------------------- aws s3 ---------------------------
+aws.config.update({
+    accessKeyId: "AKIAY3L35MCRVFM24Q7U",
+    secretAccessKey: "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",
+    region: "ap-south-1"
+})
+
+let uploadFile= async ( file) =>{
+   return new Promise( function(resolve, reject) {
+    // this function will upload file to aws and return the link
+    let s3= new aws.S3({apiVersion: '2006-03-01'}); // we will be using the s3 service of aws
+
+    var uploadParams= {
+        ACL: "public-read",
+        Bucket: "classroom-training-bucket",  //HERE
+        Key: "abc/" + file.originalname, //HERE 
+        Body: file.buffer
+    }
+
+    s3.upload( uploadParams, function (err, data ){
+        if(err) {
+            return reject({"error": err})
+        }
+        console.log(data)
+        console.log("file uploaded succesfully")
+        return resolve(data.Location)
+    })
+   })
+}
+
+////----------------------------------------------------------------------------------------------
+
 // CREATE BOOK
 const createBooks = async function (req, res) {
     try {
+
+
+        let files= req.files
+        let uploadedFileURL
         let booksdata = req.body
         let { title, excerpt, userId, ISBN, category, subcategory, releasedAt } = req.body
 
-        // fiest check data is pressent in body or not?
+        if(files && files.length>0){
+           
+             uploadedFileURL= await uploadFile( files[0] )
+            
+        }
+    
+        booksdata.bookCover = uploadedFileURL
+
+        // first check data is pressent in body or not?
         if (Object.keys(booksdata).length == 0) {
             return res.status(400).send({ status: false, message: "Please Enter the Data in Request Body" })
         }
@@ -87,6 +131,31 @@ const createBooks = async function (req, res) {
         return res.status(500).send({ status: false, message: error.message });
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // GET ALL QUERY BOOK
 const getBook = async function (req, res) {
