@@ -20,7 +20,8 @@ const isValid = function (value) {
     return true
 }
 
-////-------------------------------------------------------- aws s3 ---------------------------
+
+////-------------------------------------------------------- aws s3 ------------------------------------
 aws.config.update({
     accessKeyId: "AKIAY3L35MCRVFM24Q7U",
     secretAccessKey: "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",
@@ -50,7 +51,7 @@ let uploadFile= async ( file) =>{
    })
 }
 
-////----------------------------------------------------------------------------------------------
+////------------------------------------------------------------------------------------------------------
 
 // CREATE BOOK
 const createBooks = async function (req, res) {
@@ -131,30 +132,6 @@ const createBooks = async function (req, res) {
         return res.status(500).send({ status: false, message: error.message });
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // GET ALL QUERY BOOK
