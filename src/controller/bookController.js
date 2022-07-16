@@ -3,74 +3,21 @@ const reviewsModel = require('../model/reviewsModel')
 const mongoose = require('mongoose')
 const userModel = require("../model/usersModel")
 const ObjectId = require('mongoose').Types.ObjectId;
-const aws= require("aws-sdk")
 
-// regular expression 
-const titleregEx = /^\w[A-Za-z0-9\s\-_,\.;:()]+$/
-const regEx = /^\w[a-zA-Z\.]+/
-const isbnregEx = /\x20*(?=.{17}$)97(?:8|9)([ -])\d{1,5}\1\d{1,7}\1\d{1,6}\1\d$/
-const Dateregex = /^([0-9]{4}[-/]?((0[13-9]|1[012])[-/]?(0[1-9]|[12][0-9]|30)|(0[13578]|1[02])[-/]?31|02[-/]?(0[1-9]|1[0-9]|2[0-8]))|([0-9]{2}(([2468][048]|[02468][48])|[13579][26])|([13579][26]|[02468][048]|0[0-9]|1[0-6])00)[-/]?02[-/]?29)$/
-
-
-// Validations
-const isValid = function (value) {
-    if (typeof value === "undefined" || value === null) return false
-    if (typeof value === "string" && value.trim().length === 0) return false
-    if (typeof value === Number && value.trim().length === 0) return false
-    return true
-}
-
-
-////-------------------------------------------------------- aws s3 ------------------------------------
-aws.config.update({
-    accessKeyId: "AKIAY3L35MCRVFM24Q7U",
-    secretAccessKey: "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",
-    region: "ap-south-1"
-})
-
-let uploadFile= async ( file) =>{
-   return new Promise( function(resolve, reject) {
-    // this function will upload file to aws and return the link
-    let s3= new aws.S3({apiVersion: '2006-03-01'}); // we will be using the s3 service of aws
-
-    var uploadParams= {
-        ACL: "public-read",
-        Bucket: "classroom-training-bucket",  //HERE
-        Key: "abc/" + file.originalname, //HERE 
-        Body: file.buffer
-    }
-
-    s3.upload( uploadParams, function (err, data ){
-        if(err) {
-            return reject({"error": err})
-        }
-        console.log(data)
-        console.log("file uploaded succesfully")
-        return resolve(data.Location)
-    })
-   })
-}
-
-////------------------------------------------------------------------------------------------------------
+const {titleregEx,regEx1,isbnregEx,Dateregex,isValid} = require('../validator/util')
+const {uploadFile} = require('../aws/uploadfile')
 
 // CREATE BOOK
 const createBooks = async function (req, res) {
     try {
-
 
         let files= req.files
         let uploadedFileURL
         let booksdata = req.body
         let { title, excerpt, userId, ISBN, category, subcategory, releasedAt } = req.body
 
-        if(files && files.length>0){
-           
-             uploadedFileURL= await uploadFile( files[0] )
-            
-        }
-    
-        booksdata.bookCover = uploadedFileURL
-
+        if(files && files.length>0) {uploadedFileURL= await uploadFile( files[0] )}
+              
         // first check data is pressent in body or not?
         if (Object.keys(booksdata).length == 0) {
             return res.status(400).send({ status: false, message: "Please Enter the Data in Request Body" })
@@ -92,7 +39,7 @@ const createBooks = async function (req, res) {
 
         // excerpt is present or not?
         if (!excerpt) return res.status(400).send({ status: false, message: "Please Enter the excerpt" });
-        if (!regEx.test(excerpt)) return res.status(400).send({ status: false, message: "excerpt text is invalid it must be alphabet " });
+        if (!regEx1.test(excerpt)) return res.status(400).send({ status: false, message: "excerpt text is invalid it must be alphabet " });
 
         // userId is present or not?
         if (!userId) return res.status(400).send({ status: false, message: "Please Enter the userId" });
@@ -109,11 +56,11 @@ const createBooks = async function (req, res) {
         }
         // category is present or not?
         if (!category) return res.status(400).send({ status: false, message: "Please Enter the category" });
-        if (!regEx.test(category)) return res.status(400).send({ status: false, message: "category text is invalid it must be alphabet " });
+        if (!regEx1.test(category)) return res.status(400).send({ status: false, message: "category text is invalid it must be alphabet " });
 
         // subcategory is present or not?
         if (!subcategory) return res.status(400).send({ status: false, message: "Please Enter the subcategory" });
-        if (!regEx.test(subcategory)) return res.status(400).send({ status: false, message: "subcategory text is invalid it must be alphabet " });
+        if (!regEx1.test(subcategory)) return res.status(400).send({ status: false, message: "subcategory text is invalid it must be alphabet " });
 
         // releasedAt is present or not?
         if (!releasedAt) return res.status(400).send({ status: false, message: "Please Enter the releasedAt" });
@@ -125,6 +72,7 @@ const createBooks = async function (req, res) {
         const isbnnum = await bookModel.findOne({ ISBN })
         if (isbnnum) return res.status(409).send({ status: false, message: "ISBN must be unique" })
 
+        booksdata.bookCover = uploadedFileURL
         let data = await bookModel.create(booksdata)
         return res.status(201).send({ status: true, message: 'Success', data: data })
 
@@ -216,7 +164,6 @@ const updateBook = async function (req, res) {
         if (title.trim().length == 0) {
             return res.status(400).send({ status: false, msg: "Please enter valid title" })
         }
-
 
         if (excerpt) {
             if (!isValid(excerpt)) {

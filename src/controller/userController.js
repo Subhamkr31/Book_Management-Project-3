@@ -1,20 +1,7 @@
 const usersModel = require("../model/usersModel")
 const jwt = require('jsonwebtoken');
+const {nameRegex,mailRegex,regexNumber,regexPin,passRegex,isValid} = require('../validator/util')
 
-// regular expression 
-const nameRegex = /^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/
-const mailRegex = /^\w+([\.-]?\w+)@\w+([\.-]?\w+)(\.\w{2,3})+$/
-const regexNumber = /^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/
-const regexPin = /^[1-9]{1}[0-9]{2}[0-9]{3}$/
-const passRegex = /^[a-zA-Z0-9]{8,15}$/
-
-// Validations
-const isValid = function (value) {
-    if (typeof value === undefined || value === null) return false;
-    if (typeof value === "string" && value.trim().length === 0) return false;
-    if (typeof value === "number") return false;
-    return true;
-};
 
 // user Register APi
 const registerUser = async function (req, res) {

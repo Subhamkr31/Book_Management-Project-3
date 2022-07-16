@@ -1,18 +1,14 @@
 const reviewsModel = require('../model/reviewsModel');
 const bookModel = require("../model/booksModel");
 const mongoose = require('mongoose')
-
-
-// regular expression 
-const regEx = /^\w[a-zA-Z.\s]*$/;
-const regEx1 = /^\w[a-zA-Z\.]+/;
+const { regEx3, regEx1 } = require('../validator/util.js')
 
 
 // Validations
 const isValid = function (value) {
     if (typeof value === "undefined" || value === null) return false
     if (typeof value === "string" && value.trim().length === 0) return false
-    if (typeof value === Number && value.trim().length === 0) return false
+    if (typeof value === "number" && value.toString().trim().length === 0) return false
     return true
 }
 
@@ -33,23 +29,24 @@ const createReview = async function (req, res) {
         const findBookId = await bookModel.findOne({ _id: bookId, isDeleted: false })
 
         if (!findBookId) return res.status(404).send({ status: false, message: ' Book is not found' })
+
+        if (requestBody.reviewedBy) {
+            if (!regEx1.test(requestBody.reviewedBy)) return res.status(400).send({ status: false, message: 'reviewedBy must be alphabet' })
+        }
         if (!isValid(requestBody.review)) return res.status(400).send({ status: false, message: 'review can not be blank...' })
 
         if (requestBody.review) {
             if (!regEx1.test(requestBody.review)) return res.status(400).send({ status: false, message: 'review must be alphabet' })
         }
-
         requestBody.reviewedAt = Date.now()
 
         if (!isValid(requestBody.rating)) return res.status(400).send({ status: false, message: ' rating is Required...' })
-
         if (!(requestBody.rating >= 1 && requestBody.rating <= 5)) return res.status(400).send({ status: false, message: 'Rating is between 1 to 5' })
 
         let updatebook = await bookModel.findOneAndUpdate({ _id: bookId, isDeleted: false }, { $inc: { reviews: 1 } }, { new: true })
 
         let saveData = await reviewsModel.create(requestBody)
         let { _id, reviewedBy, reviewedAt, rating, review, isDeleted } = saveData
-
 
         let data = { _id, bookId: saveData.bookId, reviewedBy, reviewedAt, rating, review, isDeleted }
         res.status(201).send({ status: true, message: 'review created successfully', data: updatebook, review: [data] })
@@ -66,18 +63,16 @@ const updateReview = async (req, res) => {
         const bookId = req.params.bookId;
         const reviewId = req.params.reviewId;
 
-        if (!regEx.test(req.body.reviewedBy)) return res.status(400).send({ status: false, message: "reviewedBy text is invalid it must be alphabet " });
+        if (!regEx3.test(req.body.reviewedBy)) return res.status(400).send({ status: false, message: "reviewedBy text is invalid it must be alphabet " });
 
-        if (!regEx.test(req.body.review)) return res.status(400).send({ status: false, message: "review text is invalid it must be alphabet " });
+        if (!regEx3.test(req.body.review)) return res.status(400).send({ status: false, message: "review text is invalid it must be alphabet " });
 
         if (req.body.rating) {
 
             if (!(req.body.rating >= 1 && req.body.rating <= 5)) return res.status(400).send({ status: false, message: 'Rating is between 1 to 5' })
 
         }
-
         if (req.body.rating === 0) return res.status(400).send({ status: false, message: 'Rating is between 1 to 5' })
-
 
         if (!(mongoose.isValidObjectId(bookId))) return res.status(400).send({ status: false, message: "Please Enter Valid BoodId." })
 
@@ -126,7 +121,6 @@ const DeleteBookReview = async function (req, res) {
             // console.log(ab)
             return res.status(200).send({ status: true, message: `review successfuly Deleted ` });
         }
-
     } catch (error) { return res.status(500).send({ status: false, message: error.message }) }
 }
 
