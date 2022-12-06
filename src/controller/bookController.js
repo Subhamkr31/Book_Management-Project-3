@@ -17,7 +17,7 @@ const createBooks = async function (req, res) {
         let booksdata = req.body
         let { title, excerpt, userId, ISBN, category, subcategory, releasedAt } = req.body
 
-        if(files && files.length>0) {uploadedFileURL= await uploadFile( files[0] )}
+       
               
         // first check data is pressent in body or not?
         if (Object.keys(booksdata).length == 0) {
@@ -73,9 +73,17 @@ const createBooks = async function (req, res) {
         const isbnnum = await bookModel.findOne({ ISBN })
         if (isbnnum) return res.status(409).send({ status: false, message: "ISBN must be unique" })
 
-        booksdata.bookCover = uploadedFileURL
+        // if (booksdata.bookCover == 'undefined') delete booksdata.bookCover;
 
+        if(files && files.length>0) {
+            uploadedFileURL= await uploadFile( files[0] )
+        
+            booksdata.bookCover = uploadedFileURL
+        }
+
+        console.log('req.files',req.files);     
         console.log(booksdata);
+       
         let data = await bookModel.create(booksdata)
         return res.status(201).send({ status: true, message: 'Success', data: data })
 
