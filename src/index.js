@@ -14,17 +14,12 @@ app.use(multer().any())
 
 app.use(cors())
 
-mongoose.connect("mongodb+srv://Maheshpppp:GfIbvAzpfnLY6IEj@cluster0.lhhqee7.mongodb.net/test", {
+
+mongoose.connect("mongodb+srv://vivek:vivek@cluster0.vnga7l6.mongodb.net/project-b", {
     useNewUrlParser: true
 })
     .then(() => console.log('mongoDb is connected'))
     .catch((error) => console.log(error))
-
-
-// mongoose.connect("mongodb+srv://harsh-developer:aA12345678@cluster0.lxbes.mongodb.net/group22Database?retryWrites=true&w=majority",{
-//     useNewUrlParser: true
-// })
-
 
 
 app.use('/', route)
